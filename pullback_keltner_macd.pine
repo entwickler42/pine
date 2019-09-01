@@ -1,0 +1,31 @@
+//@version=4
+strategy("Keltner Channel Strategy", overlay=true)
+
+var kc_true_range = input(true)
+var kc_len = input(9)
+var kc_mul = input(2.0)
+var kc_plot = input(true)
+
+kc_center = ema(close, kc_len)
+kc_range = kc_true_range ? tr : high - low
+kc_range_ema = ema(kc_range, kc_len)
+kc_upper = kc_center + kc_range_ema * kc_mul
+kc_lower = kc_center - kc_range_ema * kc_mul
+
+plot(kc_upper, title="Keltner upper", color=color.blue, transp=kc_plot ? 0 : 100)
+plot(kc_lower, title="Keltner lower", color=color.blue, transp=kc_plot ? 0 : 100)
+plot(kc_center, title="Keltner center", color=color.blue, transp=kc_plot ? 0 : 100, style=plot.style_circles)
+
+signal = 0
+var touched_top = 0
+
+if high >= kc_upper
+    touched_top := 1
+    signal := -1
+    
+if high < kc_upper and low < kc_center and touched_top == 1
+    touched_top := 0
+    signal := 1
+
+plotarrow(signal * (high), minheight=20, maxheight=20)
+
