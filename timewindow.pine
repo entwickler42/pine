@@ -1,0 +1,11 @@
+// BEGIN TIME WINDOW
+var from_year  = input(defval = 2019, title = "From Year", minval = 2010)
+var from_month = input(defval = 1, title = "From Month", minval = 1, maxval = 12)
+var from_day   = input(defval = 1, title = "From Day", minval = 1, maxval = 31)
+var to_year    = input(defval = 9999, title = "To Year", minval = 2011)
+var to_month   = input(defval = 1, title = "To Month", minval = 1, maxval = 12)
+var to_day     = input(defval = 1, title = "To Day", minval = 1, maxval = 31)
+var window_start  = timestamp(from_year, from_month, from_day, 00, 00) 
+var window_finish = timestamp(to_year, to_month, to_day, 23, 59)   
+window() => time >= window_start and time <= window_finish ? true : false
+// END TIME WINDOW
