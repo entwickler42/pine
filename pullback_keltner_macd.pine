@@ -1,9 +1,22 @@
 //@version=4
 strategy("Keltner Channel Strategy", overlay=true)
 
+// BEGIN TIME WINDOW
+var from_year  = input(defval = 2019, title = "From Year", minval = 2010)
+var from_month = input(defval = 1, title = "From Month", minval = 1, maxval = 12)
+var from_day   = input(defval = 1, title = "From Day", minval = 1, maxval = 31)
+var to_year    = input(defval = 9999, title = "To Year", minval = 2011)
+var to_month   = input(defval = 1, title = "To Month", minval = 1, maxval = 12)
+var to_day     = input(defval = 1, title = "To Day", minval = 1, maxval = 31)
+var window_start  = timestamp(from_year, from_month, from_day, 00, 00) 
+var window_finish = timestamp(to_year, to_month, to_day, 23, 59)   
+window() => time >= window_start and time <= window_finish ? true : false
+// END TIME WINDOW
+
+// BEGIN KELTNER CHANNEL
 var kc_true_range = input(true)
-var kc_len = input(9)
-var kc_mul = input(2.0)
+var kc_len = input(21)
+var kc_mul = input(1.8)
 var kc_plot = input(true)
 
 kc_center = ema(close, kc_len)
@@ -15,17 +28,53 @@ kc_lower = kc_center - kc_range_ema * kc_mul
 plot(kc_upper, title="Keltner upper", color=color.blue, transp=kc_plot ? 0 : 100)
 plot(kc_lower, title="Keltner lower", color=color.blue, transp=kc_plot ? 0 : 100)
 plot(kc_center, title="Keltner center", color=color.blue, transp=kc_plot ? 0 : 100, style=plot.style_circles)
+// KELTNER CHANNEL
 
-signal = 0
-var touched_top = 0
+var risk = input(title="Max risk %", type=input.float, minval=0.0, step=0.1, defval=2.0) * 0.01
+var sl = low
+var tp = low
 
-if high >= kc_upper
-    touched_top := 1
-    signal := -1
+var state = 0
+plot_state = 0
+
+// Cancel    
+if state == 1 and low <= kc_lower
+    state := 0
+    plot_state := 3    
+
+// Stop-Loss
+if state == 2 and low <= sl
+    state := 3
+    plot_state := 4
+
+// Take-Profit
+if state == 2 and high >= tp
+    state := 3
+    plot_state := 5
+
+// Signal
+if state < 2 and high >= kc_upper
+    state := 1
+    plot_state := 1
+
+// Trigger
+if state == 1 and low <= kc_center+5
+    state := 2
+    plot_state := 2
+    sl := low - (low * 0.01)
+    tp := low + (low * 0.01)
+
+if (state == 2 and window())
+    strategy.entry(id="Buy", limit=hl2, long=true, qty=10)
     
-if high < kc_upper and low < kc_center and touched_top == 1
-    touched_top := 0
-    signal := 1
+if (state == 3 and window())
+    strategy.close(id="Buy")
+    state := 0
 
-plotarrow(signal * (high), minheight=20, maxheight=20)
+// plotchar(plot_state == 1, text="Signal", color=color.yellow, location=location.abovebar)
+// plotchar(plot_state == 2, text='Trigger', color=color.green, location=location.belowbar)
+// plotchar(plot_state == 3, text='Cancel', color=color.red, location=location.belowbar)
+// plotchar(plot_state == 4, text='SL', color=color.red, location=location.belowbar)
+// plotchar(plot_state == 5, text='TP', color=color.red, location=location.abovebar)
+
 
