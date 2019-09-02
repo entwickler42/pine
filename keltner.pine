@@ -1,0 +1,14 @@
+var kc_true_range = input(true)
+var kc_len = input(9)
+var kc_mul = input(2.0)
+var kc_plot = input(true)
+
+kc_center = ema(close, kc_len)
+kc_range = kc_true_range ? tr : high - low
+kc_range_ema = ema(kc_range, kc_len)
+kc_upper = kc_center + kc_range_ema * kc_mul
+kc_lower = kc_center - kc_range_ema * kc_mul
+
+plot(kc_upper, title="Keltner upper", color=color.blue, transp=kc_plot ? 0 : 100)
+plot(kc_lower, title="Keltner lower", color=color.blue, transp=kc_plot ? 0 : 100)
+plot(kc_center, title="Keltner center", color=color.blue, transp=kc_plot ? 0 : 100, style=plot.style_circles)
