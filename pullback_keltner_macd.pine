@@ -13,6 +13,8 @@ var window_finish = timestamp(to_year, to_month, to_day, 23, 59)
 window() => time >= window_start and time <= window_finish ? true : false
 // END TIME WINDOW
 
+var ttf_res = input(title="Trading Timeframe", type=input.resolution, defval="240")
+
 // BEGIN KELTNER CHANNEL
 var kc_true_range = input(true)
 var kc_len = input(21)
@@ -20,14 +22,20 @@ var kc_mul = input(1.8)
 var kc_plot = input(true)
 
 kc_center = ema(close, kc_len)
-kc_range = kc_true_range ? tr : high - low
+kc_range = high - low
 kc_range_ema = ema(kc_range, kc_len)
 kc_upper = kc_center + kc_range_ema * kc_mul
 kc_lower = kc_center - kc_range_ema * kc_mul
 
-plot(kc_upper, title="Keltner upper", color=color.blue, transp=kc_plot ? 0 : 100)
-plot(kc_lower, title="Keltner lower", color=color.blue, transp=kc_plot ? 0 : 100)
-plot(kc_center, title="Keltner center", color=color.blue, transp=kc_plot ? 0 : 100, style=plot.style_circles)
+kc_upper_htf = security(syminfo.tickerid, ttf_res, kc_upper)
+kc_lower_htf = security(syminfo.tickerid, ttf_res, kc_lower)
+kc_center_htf = security(syminfo.tickerid, ttf_res, kc_center)
+
+plot(kc_upper_htf, title="Keltner upper", color=color.red, transp=kc_plot ? 0 : 100)
+plot(kc_lower_htf, title="Keltner lower", color=color.red, transp=kc_plot ? 0 : 100)
+plot(kc_center_htf, title="Keltner center", color=color.red, transp=kc_plot ? 0 : 100)
+
+
 // KELTNER CHANNEL
 
 var risk = input(title="Max risk %", type=input.float, minval=0.0, step=0.1, defval=2.0) * 0.01
@@ -38,7 +46,7 @@ var state = 0
 plot_state = 0
 
 // Cancel    
-if state == 1 and low <= kc_lower
+if state == 1 and low <= kc_lower_htf
     state := 0
     plot_state := 3    
 
@@ -53,19 +61,19 @@ if state == 2 and high >= tp
     plot_state := 5
 
 // Signal
-if state < 2 and high >= kc_upper
+if state < 2 and high >= kc_upper_htf
     state := 1
     plot_state := 1
 
 // Trigger
-if state == 1 and low <= kc_center+5
+if state == 1 and low <= kc_center_htf
     state := 2
     plot_state := 2
     sl := low - (low * 0.01)
     tp := low + (low * 0.01)
 
 if (state == 2 and window())
-    strategy.entry(id="Buy", limit=hl2, long=true, qty=10)
+    strategy.entry(id="Buy", long=true)
     
 if (state == 3 and window())
     strategy.close(id="Buy")
