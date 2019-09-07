@@ -1,0 +1,80 @@
+//@version=4
+study("Multi Moving Averages", overlay=true)
+
+ma1_period = input(title="MA1 Period", defval=8, type=input.integer)
+ma1_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma1_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma1_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma2_period = input(title="MA2 Period", defval=13, type=input.integer)
+ma2_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma2_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma2_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma3_period = input(title="MA3 Period", defval=21, type=input.integer)
+ma3_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma3_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma3_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma4_period = input(title="MA4 Period", defval=50, type=input.integer)
+ma4_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma4_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma4_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma5_period = input(title="MA5 Period", defval=100, type=input.integer)
+ma5_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma5_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma5_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma6_period = input(title="MA6 Period", defval=200, type=input.integer)
+ma6_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma6_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma6_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma7_period = input(title="MA7 Period", defval=0, type=input.integer)
+ma7_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma7_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma7_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma8_period = input(title="MA8 Period", defval=0, type=input.integer)
+ma8_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma8_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma8_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma9_period = input(title="MA9 Period", defval=0, type=input.integer)
+ma9_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma9_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma9_res = input(title="Resolution", defval="D", type=input.resolution)
+
+ma10_period = input(title="MA10 Period", defval=0, type=input.integer)
+ma10_ema = input(title="Use exponential", defval=false, type=input.bool)
+ma10_alt = input(title="Use alternate resolution", defval=false, type=input.bool)
+ma10_res = input(title="Resolution", defval="D", type=input.resolution)
+
+calc_ma(period, ema, series, use_alt_res, alt_res) =>
+    ma = period == 0 ? na : ema ? ema(series, period) : sma(series, period)
+    ma_alt = security(syminfo.tickerid, alt_res, ma)
+    use_alt_res ? ma_alt : ma
+    
+ma1 = calc_ma(ma1_period, ma1_ema, close, ma1_alt, ma1_res)
+ma2 = calc_ma(ma2_period, ma2_ema, close, ma2_alt, ma2_res)
+ma3 = calc_ma(ma3_period, ma3_ema, close, ma3_alt, ma3_res)
+ma4 = calc_ma(ma4_period, ma4_ema, close, ma4_alt, ma4_res)
+ma5 = calc_ma(ma5_period, ma5_ema, close, ma5_alt, ma5_res)
+ma6 = calc_ma(ma6_period, ma6_ema, close, ma6_alt, ma6_res)
+ma7 = calc_ma(ma7_period, ma7_ema, close, ma7_alt, ma7_res)
+ma8 = calc_ma(ma8_period, ma8_ema, close, ma8_alt, ma8_res)
+ma9 = calc_ma(ma9_period, ma9_ema, close, ma9_alt, ma9_res)
+ma10 = calc_ma(ma10_period, ma10_ema, close, ma10_alt, ma10_res)
+
+plot(series=ma1, title="Moving Avereage 1", color=color.blue)
+plot(series=ma2, title="Moving Avereage 2", color=color.purple)
+plot(series=ma3, title="Moving Avereage 3", color=color.orange)
+plot(series=ma4, title="Moving Avereage 4", color=color.yellow)
+plot(series=ma5, title="Moving Avereage 5", color=color.green)
+plot(series=ma6, title="Moving Avereage 6", color=color.red)
+plot(series=ma7, title="Moving Avereage 7", color=color.red)
+plot(series=ma8, title="Moving Avereage 8", color=color.red)
+plot(series=ma9, title="Moving Avereage 9", color=color.red)
+plot(series=ma10, title="Moving Avereage 10", color=color.red)
+
