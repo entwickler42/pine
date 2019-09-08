@@ -1,0 +1,26 @@
+//@version=4
+study("ATR Channel Multi-Timeframe / EMA / SMA", overlay=true)
+
+atr_chan_use_alt_res = input(title="Use alternate resolution", type=input.bool, defval=false)
+atr_chan_alt_res = input(title="Resolution", type=input.resolution, defval="D")
+atr_chan_ma_type = input(title="Moving Average", type=input.string, defval="EMA", options = ["EMA", "SMA"])
+atr_chan_ma_period = input(title="Moving average period", type=input.integer, defval=14)
+atr_chan_ma_mul = input(title="Multiplicator", type=input.float, defval=1.0)
+
+atr_chan_calc_ma(series) =>
+    if atr_chan_ma_type == "EMA"
+        ema(series, atr_chan_ma_period)
+    else
+        sma(series, atr_chan_ma_period)
+
+atr_chan_scale(series) =>
+    atr_chan_use_alt_res ? security(syminfo.tickerid, atr_chan_alt_res, series) : series
+
+atr_chan_ma_atr = atr_chan_scale(atr_chan_calc_ma(tr))
+atr_chan_ma_hlc3 = atr_chan_scale(atr_chan_calc_ma(hlc3))
+atr_chan_atr_upper = atr_chan_ma_hlc3 + atr_chan_ma_atr * atr_chan_ma_mul
+atr_chan_atr_lower = atr_chan_ma_hlc3 - atr_chan_ma_atr * atr_chan_ma_mul
+
+plot(title="Upper", series=atr_chan_atr_upper, linewidth=2, color=color.white)
+plot(title="Lower", series=atr_chan_atr_lower, linewidth=2, color=color.white)
+plot(title="Center", series=atr_chan_ma_hlc3, linewidth=2, color=color.white)
