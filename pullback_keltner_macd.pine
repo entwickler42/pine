@@ -1,5 +1,5 @@
 //@version=4
-strategy("Pullback Keltner Channel Strategy", overlay=true)
+strategy("Pullback Keltner Channel Strategy", overlay=true, initial_capital=500)
 
 // BEGIN TIME WINDOW
 var from_year  = input(defval = 2019, title = "From Year", minval = 2010)
@@ -38,35 +38,43 @@ plot(kc_center_htf, color=color.white)
 var setup_long = false
 
 check_setup_long() => 
-    if strategy.position_size == 0 
-        if low <= kc_lower_htf
-            false
-        else
-            setup_long or high >= kc_upper_htf
-    else
+    if low <= kc_lower_htf
         false
+    else
+        if strategy.position_size == 0 
+            setup_long or high >= kc_upper_htf
+        else
+            false
         
 setup_long := check_setup_long()
 
 enter_long() =>
     if setup_long and high <= kc_upper_htf
-        low <= kc_center_htf
+        high[1] <= kc_upper_htf and low[1] <= kc_center_htf and close >= kc_center_htf
     else
         false
 
-atr = security(syminfo.tickerid, ttf_res, sma(tr, 14))
+calculate_position_size(entry, exit, capital_usd, risk_percent) =>
+    (capital_usd * risk_percent / 100) / abs(entry-exit)
 
+var atr_len = input(8)
+atr = security(syminfo.tickerid, ttf_res, sma(tr, atr_len))
 
-strategy.entry(id="LONG", long=true, limit=close, when=enter_long() and window())
-strategy.exit(id="LONG", stop=close-atr, profit=kc_upper_htf)
+plot(low-atr)
+plot(high+atr)
 
+var long_stop = 0.0
+var long_entry = 0.0
+var long_profit = 0.0
+
+if enter_long() and window()
+    long_stop := hlc3-atr
+    long_entry := close
+    long_profit := kc_upper_htf
+    qty = calculate_position_size(long_entry, long_stop, 500, 2)
+    strategy.entry(id="LONG", long=true, qty=qty, limit=long_entry)
+    strategy.exit(id="LONG", stop=long_stop, limit=long_profit)
 
 bgcolor(setup_long ? color.yellow : na)
 bgcolor(strategy.position_size > 0 ? color.green : na)
-
-//plotshape(1, title='SIGNAL', color=state == 0 ? color.green : color.red, style=shape.circle, location=location.absolute)
-//plotshape(1, title='SETUP', color=setup_long ? color.green : color.red, style=shape.circle, location=location.absolute)
-//plotshape(2, title='ENTRY', color=enter_long ? color.green : color.red, style=shape.circle, location=location.absolute)
-//plotshape(4, title='SL/TP',  color=state == 3 ? color.green : color.red, style=shape.circle, location=location.absolute)
-
 
